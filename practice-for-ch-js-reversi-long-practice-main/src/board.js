@@ -106,7 +106,8 @@ Board.prototype.isOccupied = function (pos) {
  * Returns empty array if no pieces of the opposite color are found.
  */
 Board.prototype._positionsToFlip = function (pos, color, dir, piecesToFlip) {
-  piecesToFlip ||=[]
+  // piecesToFlip = piecesToFlip || [];
+  piecesToFlip ||= [];
   let newPos = [pos[0] + dir[0], pos[1] + dir[1]];
   if (!this.isValidPos(newPos) || !this.isOccupied(newPos)) {
     return [];
@@ -148,17 +149,23 @@ Board.prototype.validMove = function (pos, color) {
 Board.prototype.placePiece = function (pos, color) {
   const [row, col] = pos;
 
-  if (this.validMove(pos, color)) {
-    // places the piece?
-    for (let i = 0; i < Board.DIRS.length; i++){
-    let dir = Board.DIRS[i];
-    if (this._positionsToFlip){
-      
-    }
-    }
+  if (!this.validMove(pos, color)) {
+    throw Error("Invalid move!");
+    
   } else {
-    //throw error
+    this.grid[row][col] = new Piece(color);
   }
+  
+    for (let i = 0; i < Board.DIRS.length; i++) {
+      let dir = Board.DIRS[i];
+      let flippPos = this._positionsToFlip(pos, color, dir);
+      if (flippPos) {
+        for (let j = 0; j < flippPos.length; j++) {
+          this.getPiece(flippPos[j]).flip();
+        }
+      }
+    }
+  
 
 };
 
@@ -167,12 +174,27 @@ Board.prototype.placePiece = function (pos, color) {
  * the Board for a given color.
  */
 Board.prototype.validMoves = function (color) {
+  let validArr = [];
+  for (let i = 0; i < 8; i++){
+    for (let j= 0; j < 8; j++){
+      udPos = [i,j];
+      if(this.validMove(udPos, color)){
+        validArr.push(udPos);
+      }
+    }
+  }
+  return validArr;
 };
 
 /**
  * Checks if there are any valid moves for the given color.
  */
 Board.prototype.hasMove = function (color) {
+  if(this.validMoves(color).length > 0){
+    return true;
+  } else {
+    return false;
+  }
 };
 
 /**
@@ -180,6 +202,11 @@ Board.prototype.hasMove = function (color) {
  * the black player are out of moves.
  */
 Board.prototype.isOver = function () {
+  if(!this.hasMove('white')&& !this.hasMove('black')){
+    return true;
+  } else {
+    return false;
+  }
 };
 
 /**
